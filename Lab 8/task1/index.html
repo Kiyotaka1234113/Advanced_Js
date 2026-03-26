@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Flyweight Forest Demo</title>
+    <style> canvas { border: 1px solid black; background: #e0f7fa; } </style>
+</head>
+<body>
+    <h2>Task 1: Flyweight Pattern (10,000 Trees)</h2>
+    <button id="renderBtn">Сгенерировать лес</button>
+    <button id="benchBtn">Запустить бенчмарк (F12)</button>
+    <pre id="stats"></pre>
+    <canvas id="forestCanvas" width="800" height="600"></canvas>
+
+    <script type="module">
+        import { ForestRenderer } from './forest/ForestRenderer.js';
+        import { runBenchmark } from './test/benchmark.js';
+
+        const renderer = new ForestRenderer('forestCanvas');
+        
+        document.getElementById('renderBtn').onclick = () => {
+            renderer.trees = []; // Очистка
+            renderer.generateForest(10000);
+            const stats = renderer.render();
+            document.getElementById('stats').innerText = JSON.stringify(stats, null, 2);
+        };
+
+        document.getElementById('benchBtn').onclick = runBenchmark;
+    </script>
+</body>
+</html>

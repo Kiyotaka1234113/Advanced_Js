@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Event Delegation Demo</title>
+    <style>
+        .completed .todo-text { text-decoration: line-through; color: gray; }
+        .priority-high { border-left: 4px solid red; }
+        .priority-normal { border-left: 4px solid orange; }
+        .priority-low { border-left: 4px solid green; }
+        .todo-item { padding: 5px; margin: 2px 0; background: #f9f9f9; }
+        #todo-list { height: 400px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; }
+    </style>
+</head>
+<body>
+    <h2>Task 2: Event Delegation (1000+ Items)</h2>
+    <button id="genBtn">Сгенерировать 1000 задач</button>
+    <button id="perfBtn">Тест производительности (F12)</button>
+    <div id="todo-list"></div>
+
+    <script type="module">
+        import { TodoList } from './todo/TodoList.js';
+        import { testIndividualListeners, testEventDelegation } from './test/performance-test.js';
+
+        const list = new TodoList('todo-list');
+
+        document.getElementById('genBtn').onclick = () => {
+            document.getElementById('todo-list').innerHTML = '';
+            list.idCounter = 0;
+            list.items.clear();
+            list.generateItems(1000);
+        };
+
+        document.getElementById('perfBtn').onclick = () => {
+            console.log("Одиночные слушатели:", testIndividualListeners("todo-list", 1000), "ms");
+            console.log("Делегирование:", testEventDelegation("todo-list"), "ms");
+        };
+    </script>
+</body>
+</html>

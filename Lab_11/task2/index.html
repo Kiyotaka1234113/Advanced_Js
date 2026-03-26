@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Lab 11.2 Demo - Pipelines & Cancellation</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; line-height: 1.5; }
+        .box { border: 1px solid #ccc; padding: 15px; margin-bottom: 10px; border-radius: 5px; }
+        .log { background: #eee; padding: 10px; height: 150px; overflow-y: auto; font-family: monospace; }
+        .cancel-btn { background: #dc3545; color: white; }
+    </style>
+</head>
+<body>
+    <h2>Lab 11.2: Advanced Async Patterns</h2>
+
+    <div class="box">
+        <h3>1. Конвейер данных (Pipeline)</h3>
+        <button id="runPipeline">Запустить обработку данных</button>
+        <div id="pipelineLog" class="log"></div>
+    </div>
+
+    <div class="box">
+        <h3>2. Отмена запроса (AbortController)</h3>
+        <button id="startFetch">Начать долгий запрос</button>
+        <button id="cancelFetch" class="cancel-btn">ОТМЕНИТЬ</button>
+        <div id="fetchLog" class="log"></div>
+    </div>
+
+    <script type="module">
+        import { AsyncPipeline } from './async/Pipeline.js';
+        import { CancellableFetcher } from './async/CancellableFetcher.js';
+
+        
+        document.getElementById('runPipeline').onclick = async () => {
+            const log = document.getElementById('pipelineLog');
+            const pipe = new AsyncPipeline();
+
+            pipe.use(data => {
+                log.innerText += `Stage 1: Чистка данных...\n`;
+                return data.map(s => s.trim());
+            }).use(async data => {
+                log.innerText += `Stage 2: Асинхронная задержка...\n`;
+                await new Promise(r => setTimeout(r, 1000));
+                return data.map(s => s.toUpperCase());
+            });
+
+            const result = await pipe.execute(["  apple ", " banana", "cherry  "]);
+            log.innerText += `Итог: ${JSON.stringify(result)}\n`;
+        };
+
+        
+        const fetcher = new CancellableFetcher();
+        document.getElementById('startFetch').onclick = async () => {
+            const log = document.getElementById('fetchLog');
+            log.innerText = "Запрос пошел... (ждем 5 секунд или отмены)\n";
+            try {
+                const data = await fetcher.fetch('https://jsonplaceholder.typicode.com/photos', { id: 'main' });
+                log.innerText += "Данные получены!";
+            } catch (err) {
+                log.innerText += `Ошибка: ${err.message}\n`;
+            }
+        };
+
+        document.getElementById('cancelFetch').onclick = () => {
+            fetcher.cancel('main');
+        };
+    </script>
+</body>
+</html>

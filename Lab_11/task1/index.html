@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Lab 11.1 Demo - Async Patterns</title>
+    <style>
+        body { font-family: sans-serif; line-height: 1.6; padding: 20px; background: #f4f4f9; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .log-container { background: #222; color: #00ff00; padding: 15px; border-radius: 5px; height: 300px; overflow-y: auto; font-family: monospace; font-size: 13px; margin-top: 20px; }
+        .status { font-weight: bold; color: #333; }
+        button { padding: 10px 20px; cursor: pointer; background: #007bff; color: white; border: none; border-radius: 4px; }
+        button:disabled { background: #ccc; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Lab 11.1: Promise Patterns & Retry Logic</h2>
+    <p>Студент: ____________________</p>
+    <hr>
+    
+    <div>
+        <button id="runDemo">Запустить демо (Queue + Retry)</button>
+    </div>
+
+    <div id="stats" style="margin-top: 10px;">
+        Статус: <span id="currentStatus" class="status">Ожидание</span>
+    </div>
+
+    <div class="log-container" id="log">
+        > Нажмите кнопку для запуска тестов...
+    </div>
+</div>
+
+<script type="module">
+    import { PromiseHttpClient } from './async/PromiseHttpClient.js';
+    import { withRetry } from './async/retry.js';
+    import { AsyncQueue } from './async/AsyncQueue.js';
+
+    const logElement = document.getElementById('log');
+    const statusElement = document.getElementById('currentStatus');
+    const btn = document.getElementById('runDemo');
+
+    function log(msg) {
+        const time = new Date().toLocaleTimeString();
+        logElement.innerHTML += <div>[${time}] ${msg}</div>;
+        logElement.scrollTop = logElement.scrollHeight;
+    }
+
+    
+    const client = new PromiseHttpClient('https://jsonplaceholder.typicode.com');
+    const queue = new AsyncQueue(2); 
+
+    async function startDemo() {
+        btn.disabled = true;
+        logElement.innerHTML = '';
+        statusElement.innerText = 'Выполнение...';
+        log('Запуск очереди с конкурентностью 2...');
+
+        
+        const tasks = [1, 2, 3, 4, 5].map(id => async () => {
+            log(`Задача #${id}: Добавлена в работу`);
+            
+            
+            return await withRetry(async () => {
+                
+                const data = await client.get(`/todos/${id}`);
+                log(`Задача #${id}: Успешно получена (${data.title.substring(0, 15)}...)`);
+                return data;
+            }, { 
+                maxAttempts: 2,
+                onRetry: (info) => log(`Задача #${id}: Попытка повтора ${info.attempt}...`)
+            });
+        });
+
+        try {
+            
+            const results = await queue.addAll(tasks);
+            log(`--- Готово! Обработано задач: ${results.length} ---`);
+            console.table(queue.getStats());
+        } catch (err) {
+            log(`Ошибка очереди: ${err.message}`);
+        } finally {
+            btn.disabled = false;
+            statusElement.innerText = 'Завершено';
+        }
+    }
+
+    btn.addEventListener('click', startDemo);
+</script>
+
+</body>
+</html>

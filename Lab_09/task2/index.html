@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><title>Smart Home</title></head>
+<body>
+  <h2>Smart Home Command & Mediator</h2>
+  <button id="turnOnBtn">Turn On Living Room Light</button>
+  <button id="undoBtn">Undo</button>
+  <button id="redoBtn">Redo</button>
+
+  <script type="module">
+    import { HomeMediator } from './mediator/HomeMediator.js';
+    import { Light } from './devices/Light.js';
+    import { SecuritySystem } from './devices/SecuritySystem.js';
+    import { CommandManager } from './commands/CommandManager.js';
+    import { TurnOnLightCommand } from './commands/LightCommands.js';
+
+    const mediator = new HomeMediator();
+    const livingLight = new Light("LivingRoom_Light");
+    const security = new SecuritySystem("Main_Alarm");
+
+    mediator.registerDevice(livingLight);
+    mediator.registerDevice(security);
+
+    
+    mediator.addRule(
+      (sender, state) => sender.type === 'security' && state.armed === true,
+      (devices) => devices.get("LivingRoom_Light").turnOff()
+    );
+
+    const cmdManager = new CommandManager();
+
+    document.getElementById('turnOnBtn').onclick = () => cmdManager.execute(new TurnOnLightCommand(livingLight));
+    document.getElementById('undoBtn').onclick = () => cmdManager.undo();
+    document.getElementById('redoBtn').onclick = () => cmdManager.redo();
+  </script>
+</body>
+</html>

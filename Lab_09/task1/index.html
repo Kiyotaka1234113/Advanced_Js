@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><title>Pub/Sub News</title></head>
+<body>
+  <h2>News Dashboard</h2>
+  <button id="pubTech">Publish Tech News</button>
+  <button id="pubUrgent">Publish URGENT Business News</button>
+  <button id="unsub">Unsubscribe Dashboard</button>
+  <div id="dashboard" style="border:1px solid #000; padding:10px; margin-top:10px; min-height: 100px;"></div>
+
+  <script type="module">
+    import { NewsPublisher } from './publisher/NewsPublisher.js';
+    import { EmailNotifier } from './subscribers/EmailNotifier.js';
+    import { PushNotifier } from './subscribers/PushNotifier.js';
+    import { DashboardWidget } from './subscribers/DashboardWidget.js';
+
+    const publisher = new NewsPublisher("GlobalNews");
+    const email = new EmailNotifier("test@example.com");
+    email.subscribe(["tech", "business"]);
+    const push = new PushNotifier("MobileApp");
+    const dashboard = new DashboardWidget("dashboard");
+
+    document.getElementById('pubTech').onclick = () => publisher.publishArticle("tech", "New AI Model Released!", "Content...", "normal");
+    document.getElementById('pubUrgent').onclick = () => publisher.publishArticle("business", "Market Crashes!", "Content...", "urgent");
+    document.getElementById('unsub').onclick = () => dashboard.unsubscribe();
+  </script>
+</body>
+</html>

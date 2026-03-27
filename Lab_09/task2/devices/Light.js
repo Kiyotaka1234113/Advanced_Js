@@ -1,0 +1,8 @@
+import { Device } from "./Device.js";
+export class Light extends Device {
+  constructor(name) { super(name, "light"); }
+  getDefaultState() { return { power: false, brightness: 100 }; }
+  turnOn() { this.updateState({ power: true }); console.log(`[Light] ${this.name} ON`); }
+  turnOff() { this.updateState({ power: false }); console.log(`[Light] ${this.name} OFF`); }
+  setBrightness(level) { this.updateState({ brightness: level }); }
+}

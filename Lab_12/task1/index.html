@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lab 12.1: Module Systems Demo</title>
+    <style>
+        body { font-family: system-ui, sans-serif; padding: 20px; line-height: 1.6; }
+        .output { background: #f4f4f4; padding: 15px; border-radius: 5px; font-family: monospace; }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js"></script>
+</head>
+<body>
+    <h1>Lab 12.1: Module Systems & Namespacing</h1>
+    
+    <h2>1. UMD Module Test (Browser Global)</h2>
+    <div id="umd-output" class="output">Loading UMD...</div>
+
+    <h2>2. AMD Module Test (via RequireJS)</h2>
+    <div id="amd-output" class="output">Loading AMD...</div>
+
+    <h2>3. CommonJS Note</h2>
+    <div class="output">
+        CommonJS uses <code>require()</code> and <code>module.exports</code>, which are native to Node.js. 
+        To run the CommonJS module in the browser, a bundler like Webpack or Browserify is required. 
+        Test it via terminal: <code>node -e "const lib = require('./modules/commonjs/MyLib.js'); console.log(lib.version);"</code>
+    </div>
+
+    <script src="./modules/umd/MyLib.js"></script>
+    <script>
+        // Демонстрация UMD
+        document.addEventListener('DOMContentLoaded', () => {
+            const umdOutput = document.getElementById('umd-output');
+            if (window.MyLib) {
+                const capitalized = window.MyLib.utils.string.capitalize('hello universal world');
+                umdOutput.innerHTML = `UMD Library Version: <strong>${window.MyLib.version}</strong><br>
+                                       Test string capitalize: <strong>${capitalized}</strong>`;
+            } else {
+                umdOutput.innerHTML = 'Error loading UMD module.';
+            }
+        });
+
+        // Демонстрация AMD
+        require.config({
+            paths: {
+                'jquery': 'https://code.jquery.com/jquery-3.6.0.min',
+                'underscore': 'https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.13.6/underscore-min'
+            }
+        });
+
+        require(['./modules/amd/MyLib.js'], function(MyLibAMD) {
+            const amdOutput = document.getElementById('amd-output');
+            const uniqueArr = MyLibAMD.utils.array.unique([1, 1, 2, 3, 3]);
+            amdOutput.innerHTML = `AMD Library Version: <strong>${MyLibAMD.version}</strong><br>
+                                   Test array unique: <strong>[${uniqueArr.join(', ')}]</strong>`;
+        });
+    </script>
+</body>
+</html>
